@@ -1,0 +1,40 @@
+using ProgressMeter
+using Plots
+
+β = 0.2
+inf = 1000
+
+function En(j)
+    return j^2
+end
+
+function P(N, Nₑₓ)
+    A = 0
+    B = 1
+    C = 0
+    for j in (1:1:inf)
+        F = 0
+        G = 1
+        for k in (1:1:inf)
+            if k ≠ j
+                F += (1 - exp(-β*( En(j) - En(k) )))^(-1)
+                G *= (1 - exp(-β*( En(k) - En(j) )))^(-2)
+            end
+        end
+        A += exp(-β*En(j)*Nₑₓ)*(Nₑₓ + 1 + 2*F)*G
+        B *= (1 - exp(-β*En(j)))^(-2)
+        C += (exp(-β*En(j)*N)/(exp(β*En(j)) - 1))*(N + 1 + (1 - exp(-β*En(j)))^(-1) + 2*F)*G
+    end
+    return A/(B-C)
+end
+
+prob_list = []
+N = 20
+@showprogress 1 for Nₑₓ in (0:1:N)
+    global prob_list = [prob_list ;P(N, Nₑₓ)]
+end
+display(scatter(collect(0:1:N), prob_list,  
+plot_titlefontsize = 13,
+xaxis = "Nₑₓ",
+yaxis = "P(N, Nₑₓ)",
+size = (1000, 1000)))

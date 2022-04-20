@@ -6,11 +6,10 @@ using ProgressMeter
 
 
 #Simulation parameters
-beta = 0.2
-β = beta
-cut_off = 20
+β = 0.2
+cut_off = 10
 N = 100
-iterations = 100000
+iterations = 1000000
 #-------------------------
 
 #Vectors describing ocupations
@@ -34,7 +33,7 @@ function Step(state)
         E_f, E_i = stateEnergy(final_state), stateEnergy(state)
         r = rand(Float32,1)
         #print(E_f," " ,E_i)
-        if exp(-(E_f-E_i)*beta) > r[1]
+        if exp(-(E_f-E_i)*β) > r[1]
             return final_state, E_f
         end
     end
@@ -50,11 +49,11 @@ states_energy_vector = [stateEnergy(states_vector[1,:])]
     global states_vector = [states_vector; temp[1]']
 end
 
-scatter(collect(1:1:iterations+1), states_energy_vector, 
-plot_title = "N = $N, Cut-off = $cut_off, β = $beta, iterations = $iterations", 
+display(scatter(collect(1:1:iterations+1), states_energy_vector, 
+plot_title = "N = $N, Cut-off = $cut_off, β = $β, iterations = $iterations", 
 plot_titlefontsize = 13,
 xaxis = "Iteration step",
-yaxis = "⟨E⟩")
+yaxis = "⟨E⟩"))
 
 
 energies_f_histogram = []
@@ -63,26 +62,22 @@ for (index,value) in enumerate(states_vector[iterations+1,:])
         global energies_f_histogram = [energies_f_histogram; energy_levels[index]]
     end
 end
-histogram(energies_f_histogram, 
-bins = 0:10:600,
-plot_title = "N = $N, Cut-off = $cut_off, β = $beta, iterations = $iterations", 
-plot_titlefontsize = 13,
-xaxis = "State Energy",
-yaxis = "Occupation number")
 
 display(heatmap(collect(-cut_off:1:cut_off),collect(100:1:iterations),states_vector[100:iterations,:],
-plot_title = "N = $N, Cut-off = $cut_off, β = $beta, iterations = $iterations", 
+plot_title = "N = $N, Cut-off = $cut_off, β = $β, iterations = $iterations", 
 plot_titlefontsize = 13,
 xaxis = "Wave number",
 yaxis = "Iteration"))
 
 histogram(N .- states_vector[1000:end,cut_off + 1], 
 bins = 0:1:N+1,
-plot_title = "N = $N, Cut-off = $cut_off, β = $beta, iterations = $iterations", 
+plot_title = "N = $N, Cut-off = $cut_off, β = $β, iterations = $iterations", 
 plot_titlefontsize = 13,
 xaxis = "x",
-yaxis = "p(Nₑₓ = x) ", normalize = true, size = (1000, 1000))
+yaxis = "p(Nₑₓ = x) ", normalize = :probability, size = (1000, 1000))
 
+
+# Analytic part ---------------------------------------------
 inf = 1000
 
 function En(j)
@@ -113,6 +108,8 @@ prob_list = []
 @showprogress 1 for Nₑₓ in (0:1:N)
     global prob_list = [prob_list ;P(N, Nₑₓ)]
 end
+#------------------------------------------------
+
 display(scatter!(collect(0:1:N), prob_list,  
 plot_titlefontsize = 13,
 xaxis = "Nₑₓ",

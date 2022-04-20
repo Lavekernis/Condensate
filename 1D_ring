@@ -12,7 +12,7 @@ N = 100
 iterations = 1000000
 #-------------------------
 
-#Vectors describing ocupations
+#Vectors describing occupations
 states_numerator = collect(1:1:2*cut_off+1)              # 1, 2, 3, ...
 energy_levels = collect(-cut_off:1:cut_off).^2           # E(n_min), ..., 0, ..., E(n_max)
 #----------------------------------------------

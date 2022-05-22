@@ -8,9 +8,8 @@ using ProgressMeter
 #Simulation parameters
 β = 0.2
 N = 20
-iterations = 10000
+iterations = 1000
 #-------------------------
-
 
 function stateEnergy(state, energy_levels)
     return sum(state .* energy_levels)
@@ -35,19 +34,23 @@ function Step(state, states_numerator, energy_levels)
     end
 end
 
-function acceptance_plot()
+function acceptance_plot(max_cut_off)
     list_of_acceptance = []
-    @showprogress 1 for cut_off in collect(1:1:30)
-        states_vector = zeros(Int64, 1, 2*cut_off+1);
+    @showprogress 1 for cut_off in collect(500:1:max_cut_off)
+        local states_vector = zeros(Int64, 1, 2*cut_off+1);
         states_vector[1,1] = N;
-        accep_coef = []
-        states_numerator = collect(1:1:2*cut_off+1)
-        energy_levels = collect(-cut_off:1:cut_off).^2   
+        local accep_coef = []
+        local states_numerator = collect(1:1:2*cut_off+1)
+        local energy_levels = collect(-cut_off:1:cut_off).^2   
         for i in collect(1:1:iterations)
             temp = Step(states_vector[i,:], states_numerator, energy_levels)
             states_vector = [states_vector; temp[1]']
             accep_coef = [accep_coef; temp[3]]
         end
         list_of_acceptance = [list_of_acceptance; mean(accep_coef[500:end])]
+        println(size(states_vector))
     end
+    plot(collect(500:1:max_cut_off), list_of_acceptance)
 end
+
+acceptance_plot(600)

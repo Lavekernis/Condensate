@@ -6,11 +6,11 @@ using ProgressMeter
 
 termalization = 5000
 
-function σNₑₓ(β)
+function σNₑₓ(β, g)
     #Simulation parameters
     cut_off = 5
     N = 100
-    iterations = 3000000
+    iterations = 300000
     #-------------------------
 
     #Vectors describing occupation
@@ -30,7 +30,15 @@ function σNₑₓ(β)
     end
 
     function stateEnergy(state)
-        return sum(state .* energy_levels)
+        inter = 0
+        for (i, i_n) in enumerate(state)
+            for (j, j_n) in enumerate(state)
+                if (i != j)
+                    inter += 1/2*g*i_n*j_n
+                end
+            end
+        end 
+        return sum(state .* energy_levels) + inter
     end
 
 
@@ -69,20 +77,32 @@ function σNₑₓ(β)
     return std(N₀_list)
 end
 
-σ_list = Vector{Float64}()
-T_list = collect(0.1:0.1:10)
-@showprogress 1 for T in T_list
-    push!(σ_list, σNₑₓ(1/T))
+function disp(g)
+    σ_list = Vector{Float64}()
+    T_list = collect(0.1:0.1:10)
+    @showprogress 1 for T in T_list
+        push!(σ_list, σNₑₓ(1/T, g))
+    end
+    return T_list, σ_list
+end
+
+for g in (0:0.01:0.01)
+    T_list, σ_list = disp(g)
+    display(scatter!(T_list, σ_list,
+    xaxis = "T",
+    yaxis = "σNₑₓ",
+    size = (1000, 1000), label = "g = $g"))
 end
 
 
-io = open("dane.txt", "w")
-for i in (1:1:length(σ_list))
-    write(io, string(T_list[i]), "\t", string(σ_list[i]), "\n")
-end
-close(io)
 
-scatter(T_list, σ_list,
-xaxis = "T",
-yaxis = "σNₑₓ",
-size = (1000, 1000))
+# io = open("dane.txt", "w")
+# for i in (1:1:length(σ_list))
+#     write(io, string(T_list[i]), "\t", string(σ_list[i]), "\n")
+# end
+# close(io)
+
+# scatter(T_list, σ_list,
+# xaxis = "T",
+# yaxis = "σNₑₓ",
+# size = (1000, 1000))

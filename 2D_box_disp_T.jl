@@ -10,7 +10,7 @@ function σNₑₓ(β, g)
     #Simulation parameters
     cut_off = 5
     N = 100
-    iterations = 300000
+    iterations = 500000
     #-------------------------
 
     #Vectors describing occupation
@@ -86,8 +86,13 @@ function disp(g)
     return T_list, σ_list
 end
 
-for g in (0:0.01:0.01)
+for g in (0:0.01:0.02)
     T_list, σ_list = disp(g)
+    io = open("dane$g.txt", "w")
+    for i in (1:1:length(σ_list))
+        write(io, string(T_list[i]), "\t", string(σ_list[i]), "\n")
+    end
+    close(io)
     display(scatter!(T_list, σ_list,
     xaxis = "T",
     yaxis = "σNₑₓ",

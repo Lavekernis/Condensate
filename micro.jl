@@ -10,7 +10,7 @@ function σNₑₓ(β, g)
     #Simulation parameters
     cut_off = 5
     N = 100
-    iterations = 500000
+    iterations = 50000
     #-------------------------
 
     #Vectors describing occupation
@@ -64,44 +64,23 @@ function σNₑₓ(β, g)
         push!(states_vector, temp[1])
     end
 
-    N₀_list = []
+    Nₑₓ_list = []
     for states in states_vector[termalization:end]
-        push!(N₀_list, N - states[cut_off + 1, cut_off + 1])
+        push!(Nₑₓ_list, N - states[cut_off + 1, cut_off + 1])
     end
-    return std(N₀_list)
+    return std(Nₑₓ_list), states_vector, states_energy_vector
 end
 
-function disp(g)
-    σ_list = Vector{Float64}()
-    T_list = collect(0.1:0.1:10)
-    @showprogress 1 for T in T_list
-        push!(σ_list, σNₑₓ(1/T, g))
+function disp(g = 0.0)
+    T_list = collect(5:0.1:9)
+    states_matrix = Vector{Array}()
+    energy_matrix = Vector{Vector}()
+    @showprogress 1 for T_i in T_list
+        σ, state_vector, energy_vector = σNₑₓ(1/T_i, 0)
+        push!(states_matrix, state_vector)
+        push!(energy_matrix, energy_vector)
     end
-    return T_list, σ_list
+    1+1
 end
 
-for g in (0.00:0.01:0.02)
-    T_list, σ_list = disp(g)
-    io = open("dane$g.txt", "w")
-    for i in (1:1:length(σ_list))
-        write(io, string(T_list[i]), "\t", string(σ_list[i]), "\n")
-    end
-    close(io)
-    display(scatter!(T_list, σ_list,
-    xaxis = "T",
-    yaxis = "σNₑₓ",
-    size = (1000, 1000), label = "g = $g"))
-end
-
-
-
-# io = open("dane.txt", "w")
-# for i in (1:1:length(σ_list))
-#     write(io, string(T_list[i]), "\t", string(σ_list[i]), "\n")
-# end
-# close(io)
-
-# scatter(T_list, σ_list,
-# xaxis = "T",
-# yaxis = "σNₑₓ",
-# size = (1000, 1000))
+disp()

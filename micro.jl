@@ -6,12 +6,14 @@ using ProgressMeter
 
 termalization = 5000
 
+#Simulation parameters
+N = 100
+cut_off = 5
+iterations = 5000000
+#-------------------------
+
 function σNₑₓ(β, g)
-    #Simulation parameters
-    cut_off = 5
-    N = 100
-    iterations = 50000
-    #-------------------------
+
 
     #Vectors describing occupation
     states_numerator = Array{Vector}(undef, (2*cut_off+1)^2)
@@ -64,23 +66,49 @@ function σNₑₓ(β, g)
         push!(states_vector, temp[1])
     end
 
-    Nₑₓ_list = []
-    for states in states_vector[termalization:end]
-        push!(Nₑₓ_list, N - states[cut_off + 1, cut_off + 1])
-    end
-    return std(Nₑₓ_list), states_vector, states_energy_vector
+
+    return states_vector, states_energy_vector
 end
 
-function disp(g = 0.0)
-    T_list = collect(5:0.1:9)
-    states_matrix = Vector{Array}()
-    energy_matrix = Vector{Vector}()
-    @showprogress 1 for T_i in T_list
-        σ, state_vector, energy_vector = σNₑₓ(1/T_i, 0)
-        push!(states_matrix, state_vector)
-        push!(energy_matrix, energy_vector)
-    end
-    1+1
-end
+# function disp(g = 0.0)
+#     T_list = collect(5:0.1:9)
+#     states_matrix = Vector{Array}()
+#     energy_matrix = Vector{Vector}()
+#     @showprogress 1 for T_i in T_list
+#         σ, state_vector, energy_vector = σNₑₓ(1/T_i, 0)
+#         push!(states_matrix, state_vector)
+#         push!(energy_matrix, energy_vector)
+#     end
+    
+# end
+state_vector, energy_vector = σNₑₓ(1/4, 0)
+# display(histogram(energy_vector,
+#     plot_titlefontsize = 13,
+#     xaxis = ("E", 0:10:300),
+#     yaxis = "N", size = (1000, 1000)))
+   
+    # Nₑₓ_list = []
+    # for states in states_vector[termalization:end]
+    #     push!(Nₑₓ_list, N - states[cut_off + 1, cut_off + 1])
+    # end
 
-disp()
+hist = fit(Histogram, energy_vector)
+E_max = argmax(hist.weights)*(maximum(energy_vector)/length(hist.weights))
+
+σ_list = Vector{Float64}()
+ΔE_list = (100:-1:0)
+r_list = Vector{Int64}()
+@showprogress 1 for ΔE in ΔE_list
+    Nₑₓ_list = Vector{Int64}()
+    r = 0
+    for (i,E_i) in enumerate(energy_vector)
+        if abs(E_i-E_max) < ΔE
+            push!(Nₑₓ_list, N - state_vector[i][cut_off + 1, cut_off + 1])
+            r += 1
+        end
+    end
+    push!(σ_list, std(Nₑₓ_list))
+    push!(r_list, r)
+end
+display(plot(ΔE_list, σ_list))
+display(plot(ΔE_list, r_list))
